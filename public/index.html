@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Timer</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+
+  <div class="main-container">
+    <h1 id="currentTaskDisplay" class="task-title">Default Task</h1>
+    <div id="timer">--:--</div>
+    
+    <div class="controls">
+      <button id="start">Start</button>
+      <button id="pause">Pause</button>
+      <button id="reset">Reset</button>
+    </div>
+
+    <div class="stats-section">
+      <h3>Completed Sessions</h3>
+      <ul id="completedList"></ul>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeModal">&times;</span>
+      <h2>Settings</h2>
+      
+      <div class="setting-group">
+        <h3>📋 Task Settings</h3>
+        <label>Select Current Task:</label>
+        <select id="taskSelect"></select>
+        
+        <div class="add-task-wrapper">
+          <input type="text" id="newTaskInput" placeholder="Enter new task name...">
+        </div>
+        
+        <div class="modal-buttons">
+          <button id="addTaskBtn" class="action-btn">Add Task</button>
+          <button id="deleteTaskBtn" class="action-btn danger">Delete Task</button>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <h3>🎵 Music & Time</h3>
+        <p class="hint">Pomodoro time automatically syncs with music length</p>
+        <input type="file" id="musicInput" accept="audio/*">
+        <div id="musicPath" class="text-muted">Default: Bach Cello Suite No. 5</div>
+      </div>
+
+      <div class="setting-group">
+        <h3>🔊 Volume Control</h3>
+        <div class="volume-row">
+          <input type="range" id="volumeSlider" min="0" max="100" value="70" step="1">
+          <span id="volumeValue">70%</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <audio id="music"></audio>
+  <script src="app.js"></script>
+</body>
+</html>

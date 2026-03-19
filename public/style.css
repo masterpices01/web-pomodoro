@@ -1,0 +1,156 @@
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  text-align: center;
+  padding: 0;
+  background-color: #f4f7f6;
+  margin: 0;
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-size: 16px;
+  position: relative; 
+}
+
+#settingsBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: none;
+  min-width: auto;
+  min-height: auto;
+  padding: 0;
+  transition: transform 0.3s ease;
+}
+
+#settingsBtn:hover { transform: rotate(90deg); }
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+}
+
+.task-title { font-size: 1.5rem; color: #607d8b; margin-bottom: 0; font-weight: normal; }
+
+#timer {
+  font-size: 6rem;
+  font-weight: bold;
+  margin: 1rem 0 2rem 0;
+  color: #333;
+  user-select: none;
+  letter-spacing: 2px;
+}
+
+button {
+  font-size: 1.1rem;
+  padding: 0.8rem 1.8rem;
+  margin: 0.5rem;
+  min-width: 8em;
+  border: none;
+  border-radius: 50px; 
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+button:active { transform: translateY(0); }
+
+#start { background-color: #4caf50; color: white; }
+#pause { background-color: #ff9800; color: white; }
+#reset { background-color: #f44336; color: white; }
+
+.stats-section {
+  margin-top: 2rem;
+  background: white;
+  padding: 15px 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  width: 100%;
+  max-width: 350px;
+  text-align: left;
+}
+
+.stats-section h3 { margin-top: 0; text-align: center; color: #333; }
+#completedList { list-style-type: none; padding: 0; margin: 0; }
+#completedList li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+
+/* ================== Modal 樣式 ================== */
+.modal {
+  display: none; 
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5); 
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 5vh auto; /* 縮小上方邊距適應小螢幕 */
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  text-align: left;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  max-height: 85vh; /* 限制最大高度 */
+  overflow-y: auto; /* 內容過多時自動顯示捲軸 */
+}
+
+.close-btn { position: absolute; top: 15px; right: 20px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+.close-btn:hover { color: #333; }
+
+.setting-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+.setting-group:last-child { border-bottom: none; }
+.setting-group h3 { margin-top: 0; font-size: 1.1rem; color: #333; }
+
+.hint { font-size: 0.85rem; color: #888; margin-top: -5px; margin-bottom: 10px; }
+.text-muted { font-size: 0.9rem; color: #666; margin-top: 8px; word-break: break-all; }
+
+select, input[type="text"], input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0 10px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* 統一 Modal 內的按鈕尺寸 */
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.action-btn {
+  flex: 1; /* 讓按鈕均分寬度 */
+  height: 45px; /* 固定相同高度 */
+  font-size: 1rem;
+  border-radius: 8px;
+  margin: 0;
+  min-width: 0; 
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: #607d8b;
+  color: white;
+}
+
+.action-btn:hover { background-color: #455a64; transform: translateY(-1px); }
+.action-btn.danger { background-color: #ef5350; }
+.action-btn.danger:hover { background-color: #d32f2f; }
+
+.volume-row { display: flex; align-items: center; gap: 10px; }
+#volumeSlider { flex-grow: 1; cursor: pointer; }
