@@ -51,7 +51,7 @@ init();
 function init() {
   initVolume();
   renderTasks();
-  audio.src = 'assets/Bach Cello Suite No  5 in C minor, BWV 1011(Pablo Casals 1938) - 320.mp3';
+  audio.src = 'assets/compressed-bach.mp3';
 }
 
 // ================== Music & Time Sync ==================
