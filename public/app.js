@@ -27,6 +27,9 @@ let musicDuration = 0;
 let remainingTime = 0;
 let isRunning = false;
 let shouldPlayMusic = false;
+let audioCtx;
+let gainNode;
+let source;
 
 // --- Task & Volume Data ---
 let tasksData = JSON.parse(localStorage.getItem('pomodoroTasks'));
@@ -51,7 +54,7 @@ init();
 function init() {
   initVolume();
   renderTasks();
-  audio.src = 'assets/compressed-bach.mp3';
+  audio.src = 'assets/11 (Remastered 2004).mp3';
 }
 
 // ================== Music & Time Sync ==================
@@ -86,6 +89,9 @@ startBtn.addEventListener('click', () => {
   if (musicDuration === 0 || isNaN(musicDuration)) {
     alert("Reading music length, please wait...");
     return;
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
   }
 
   if (!isRunning) {
@@ -205,14 +211,33 @@ function incrementCurrentTask() {
 // ================== Volume Logic ==================
 
 function initVolume() {
-  audio.volume = volume;
+  // 建立音訊上下文
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    source = audioCtx.createMediaElementSource(audio);
+    gainNode = audioCtx.createGain();
+    source.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+  }
+
+  // 設定初始增益值 (100% = 1.0, 250% = 2.5)
+  gainNode.gain.value = volume; 
   volumeSlider.value = volume * 100;
   volumeValueDisplay.textContent = Math.round(volume * 100) + '%';
 }
 
 volumeSlider.addEventListener('input', (e) => {
   volume = e.target.value / 100;
-  audio.volume = volume;
+  
+  // 確保 AudioContext 在使用者互動後啟動 (瀏覽器安全限制)
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  if (gainNode) {
+    gainNode.gain.value = volume; // 這裡的 volume 可以超過 1
+  }
+  
   volumeValueDisplay.textContent = e.target.value + '%';
   localStorage.setItem('pomodoroVolume', volume);
 });
