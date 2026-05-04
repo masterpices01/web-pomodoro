@@ -21,6 +21,12 @@ const volumeSlider = document.getElementById('volumeSlider');
 const volumeValueDisplay = document.getElementById('volumeValue');
 const audio = document.getElementById('music');
 
+const alertAudio = document.getElementById('alertSound');
+const alertVolumeSlider = document.getElementById('alertVolumeSlider');
+const alertVolumeValueDisplay = document.getElementById('alertVolumeValue');
+
+let alertVolume = parseFloat(localStorage.getItem('pomodoroAlertVolume')) || 0.7;
+
 // --- State Variables ---
 let timerInterval;
 let musicDuration = 0; 
@@ -53,8 +59,15 @@ init();
 
 function init() {
   initVolume();
+  initAlertVolume(); // 新增此行
   renderTasks();
   audio.src = 'assets/11 (Remastered 2004).mp3';
+}
+
+function initAlertVolume() {
+  alertAudio.volume = alertVolume;
+  alertVolumeSlider.value = alertVolume * 100;
+  alertVolumeValueDisplay.textContent = Math.round(alertVolume * 100) + '%';
 }
 
 // ================== Music & Time Sync ==================
@@ -107,6 +120,11 @@ startBtn.addEventListener('click', () => {
       } else {
         clearInterval(timerInterval);
         isRunning = false;
+
+// 播放結束音效
+  alertAudio.currentTime = 0; // 從頭播放
+  alertAudio.play().catch(err => console.log("Alert play blocked", err));
+
         incrementCurrentTask();
         remainingTime = musicDuration;
         updateTimerDisplay();
@@ -226,6 +244,8 @@ function initVolume() {
   volumeValueDisplay.textContent = Math.round(volume * 100) + '%';
 }
 
+
+
 volumeSlider.addEventListener('input', (e) => {
   volume = e.target.value / 100;
   
@@ -240,6 +260,14 @@ volumeSlider.addEventListener('input', (e) => {
   
   volumeValueDisplay.textContent = e.target.value + '%';
   localStorage.setItem('pomodoroVolume', volume);
+});
+
+
+alertVolumeSlider.addEventListener('input', (e) => {
+  alertVolume = e.target.value / 100;
+  alertAudio.volume = alertVolume;
+  alertVolumeValueDisplay.textContent = e.target.value + '%';
+  localStorage.setItem('pomodoroAlertVolume', alertVolume);
 });
 
 // ================== Modal Controls ==================
