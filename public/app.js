@@ -5,18 +5,17 @@ const startBtn = document.getElementById('start');
 const pauseBtn = document.getElementById('pause');
 const resetBtn = document.getElementById('reset');
 
+const themeToggleBtn = document.getElementById('themeToggleBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
 const closeModal = document.getElementById('closeModal');
-
+const taskList = document.getElementById('taskList');
 const taskSelect = document.getElementById('taskSelect');
 const newTaskInput = document.getElementById('newTaskInput');
 const addTaskBtn = document.getElementById('addTaskBtn');
 const deleteTaskBtn = document.getElementById('deleteTaskBtn');
 const completedList = document.getElementById('completedList');
 
-const musicInput = document.getElementById('musicInput');
-const musicPathDisplay = document.getElementById('musicPath');
 const volumeSlider = document.getElementById('volumeSlider');
 const volumeValueDisplay = document.getElementById('volumeValue');
 const audio = document.getElementById('music');
@@ -25,6 +24,11 @@ const alertAudio = document.getElementById('alertSound');
 const alertVolumeSlider = document.getElementById('alertVolumeSlider');
 const alertVolumeValueDisplay = document.getElementById('alertVolumeValue');
 
+// Alert Modal Elements
+const alertModal = document.getElementById('alertModal');
+const alertTaskMessage = document.getElementById('alertTaskMessage');
+const alertConfirmBtn = document.getElementById('alertConfirmBtn');
+
 let alertVolume = parseFloat(localStorage.getItem('pomodoroAlertVolume')) || 0.7;
 
 // --- State Variables ---
@@ -32,7 +36,6 @@ let timerInterval;
 let musicDuration = 0; 
 let remainingTime = 0;
 let isRunning = false;
-let shouldPlayMusic = false;
 let audioCtx;
 let gainNode;
 let source;
@@ -42,13 +45,12 @@ let tasksData = JSON.parse(localStorage.getItem('pomodoroTasks'));
 let currentTask = localStorage.getItem('pomodoroCurrentTask') || "Default Task";
 let volume = parseFloat(localStorage.getItem('pomodoroVolume')) || 0.7;
 
-// 資料結構升級檢測：如果沒有資料，或舊版資料只有存數字，就轉換成新版 { count: 數字, lastUpdated: 時間戳 }
+// 資料結構檢測
 if (!tasksData) {
   tasksData = { "Default Task": { count: 0, lastUpdated: Date.now() } };
 } else {
   for (const key in tasksData) {
     if (typeof tasksData[key] === 'number') {
-      // 將舊資料轉換為新格式
       tasksData[key] = { count: tasksData[key], lastUpdated: Date.now() };
     }
   }
@@ -58,16 +60,26 @@ if (!tasksData) {
 init();
 
 function init() {
+  initTheme();
   initVolume();
-  initAlertVolume(); // 新增此行
+  initAlertVolume();
   renderTasks();
-  audio.src = 'assets/11 (Remastered 2004).mp3';
+  audio.src = 'assets/11 (Remastered 2004).mp3'; // 可自行換成你的音樂檔
 }
 
-function initAlertVolume() {
-  alertAudio.volume = alertVolume;
-  alertVolumeSlider.value = alertVolume * 100;
-  alertVolumeValueDisplay.textContent = Math.round(alertVolume * 100) + '%';
+// ================== Theme Logic (明暗切換) ==================
+
+function initTheme() {
+  let currentTheme = localStorage.getItem('pomodoroTheme') || 'dark'; // 預設暗色
+  document.body.setAttribute('data-theme', currentTheme);
+  themeToggleBtn.textContent = currentTheme === 'light' ? '🌙' : '🌞';
+  
+  themeToggleBtn.addEventListener('click', () => {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', currentTheme);
+    localStorage.setItem('pomodoroTheme', currentTheme);
+    themeToggleBtn.textContent = currentTheme === 'light' ? '🌙' : '🌞';
+  });
 }
 
 // ================== Music & Time Sync ==================
@@ -77,16 +89,6 @@ audio.addEventListener('loadedmetadata', () => {
   if (!isRunning) {
     remainingTime = musicDuration;
     updateTimerDisplay();
-  }
-});
-
-musicInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const objectURL = URL.createObjectURL(file);
-    audio.src = objectURL;
-    musicPathDisplay.textContent = file.name;
-    if (isRunning) resetTimer();
   }
 });
 
@@ -107,10 +109,12 @@ startBtn.addEventListener('click', () => {
     audioCtx.resume();
   }
 
+  // 點擊啟動時更新該任務的時間戳記
+  tasksData[currentTask].lastUpdated = Date.now();
+  saveTasksData();
+
   if (!isRunning) {
     isRunning = true;
-    shouldPlayMusic = true;
-    
     audio.play().catch(err => console.log("Auto-play prevented", err));
 
     timerInterval = setInterval(() => {
@@ -121,14 +125,15 @@ startBtn.addEventListener('click', () => {
         clearInterval(timerInterval);
         isRunning = false;
 
-// 播放結束音效
-  alertAudio.currentTime = 0; // 從頭播放
-  alertAudio.play().catch(err => console.log("Alert play blocked", err));
+        // 播放結束音效
+        alertAudio.currentTime = 0;
+        alertAudio.play().catch(err => console.log("Alert play blocked", err));
 
         incrementCurrentTask();
         remainingTime = musicDuration;
         updateTimerDisplay();
-        alert(`Pomodoro Completed! (${currentTask})`);
+        
+        showCompletionModal(currentTask);
       }
     }, 1000);
   }
@@ -147,7 +152,6 @@ resetBtn.addEventListener('click', resetTimer);
 function resetTimer() {
   clearInterval(timerInterval);
   isRunning = false;
-  shouldPlayMusic = false;
   remainingTime = musicDuration;
   updateTimerDisplay();
   audio.pause();
@@ -159,7 +163,26 @@ function resetTimer() {
 function renderTasks() {
   currentTaskDisplay.textContent = currentTask;
 
-  // 1. 更新設定面板的下拉選單 (保持原本順序或字元順序皆可，這裡依原物件順序)
+  const sortedTasks = Object.entries(tasksData).sort((a, b) => {
+    return b[1].lastUpdated - a[1].lastUpdated;
+  });
+
+  // 1. 左側快捷任務清單
+  taskList.innerHTML = '';
+  sortedTasks.forEach(([taskName]) => {
+    const btn = document.createElement('button');
+    btn.className = `task-btn ${taskName === currentTask ? 'active' : ''}`;
+    btn.textContent = taskName;
+    btn.title = taskName;
+    btn.addEventListener('click', () => {
+      currentTask = taskName;
+      tasksData[currentTask].lastUpdated = Date.now();
+      saveTasksData();
+    });
+    taskList.appendChild(btn);
+  });
+
+  // 2. 更新設定面板的下拉選單
   taskSelect.innerHTML = '';
   for (const taskName in tasksData) {
     const option = document.createElement('option');
@@ -169,14 +192,8 @@ function renderTasks() {
     taskSelect.appendChild(option);
   }
 
-  // 2. 更新主畫面統計清單 (依據 lastUpdated 降冪排序)
+  // 3. 右側主畫面統計清單 (完美對稱位置)
   completedList.innerHTML = '';
-  
-  // 將物件轉為陣列，並依照最後更新時間排序 (新 -> 舊)
-  const sortedTasks = Object.entries(tasksData).sort((a, b) => {
-    return b[1].lastUpdated - a[1].lastUpdated;
-  });
-
   for (const [taskName, taskInfo] of sortedTasks) {
     const li = document.createElement('li');
     li.innerHTML = `<span>${taskName}</span> <span>${taskInfo.count} times</span>`;
@@ -192,13 +209,13 @@ function saveTasksData() {
 
 taskSelect.addEventListener('change', (e) => {
   currentTask = e.target.value;
+  tasksData[currentTask].lastUpdated = Date.now();
   saveTasksData();
 });
 
 addTaskBtn.addEventListener('click', () => {
   const newTaskName = newTaskInput.value.trim();
   if (newTaskName && tasksData[newTaskName] === undefined) {
-    // 新增任務時，賦予初始次數 0 與當前時間戳
     tasksData[newTaskName] = { count: 0, lastUpdated: Date.now() };
     currentTask = newTaskName;
     newTaskInput.value = '';
@@ -220,16 +237,34 @@ deleteTaskBtn.addEventListener('click', () => {
 });
 
 function incrementCurrentTask() {
-  // 任務完成時，增加次數並更新時間戳
   tasksData[currentTask].count += 1;
   tasksData[currentTask].lastUpdated = Date.now();
   saveTasksData();
 }
 
+// ================== Completion Alert Modal ==================
+
+function showCompletionModal(taskName) {
+  alertTaskMessage.textContent = `Completed Task: ${taskName}`;
+  alertModal.style.display = "block";
+  alertConfirmBtn.focus(); 
+}
+
+function hideCompletionModal() {
+  alertModal.style.display = "none";
+}
+
+alertConfirmBtn.addEventListener('click', hideCompletionModal);
+
+window.addEventListener('keydown', (e) => {
+  if (alertModal.style.display === "block" && e.key === "Enter") {
+    hideCompletionModal();
+  }
+});
+
 // ================== Volume Logic ==================
 
 function initVolume() {
-  // 建立音訊上下文
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     source = audioCtx.createMediaElementSource(audio);
@@ -237,31 +272,24 @@ function initVolume() {
     source.connect(gainNode);
     gainNode.connect(audioCtx.destination);
   }
-
-  // 設定初始增益值 (100% = 1.0, 250% = 2.5)
   gainNode.gain.value = volume; 
   volumeSlider.value = volume * 100;
   volumeValueDisplay.textContent = Math.round(volume * 100) + '%';
 }
 
-
-
 volumeSlider.addEventListener('input', (e) => {
   volume = e.target.value / 100;
-  
-  // 確保 AudioContext 在使用者互動後啟動 (瀏覽器安全限制)
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-
-  if (gainNode) {
-    gainNode.gain.value = volume; // 這裡的 volume 可以超過 1
-  }
-  
+  if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
+  if (gainNode) { gainNode.gain.value = volume; }
   volumeValueDisplay.textContent = e.target.value + '%';
   localStorage.setItem('pomodoroVolume', volume);
 });
 
+function initAlertVolume() {
+  alertAudio.volume = alertVolume;
+  alertVolumeSlider.value = alertVolume * 100;
+  alertVolumeValueDisplay.textContent = Math.round(alertVolume * 100) + '%';
+}
 
 alertVolumeSlider.addEventListener('input', (e) => {
   alertVolume = e.target.value / 100;
@@ -283,5 +311,8 @@ closeModal.addEventListener('click', () => {
 window.addEventListener('click', (event) => {
   if (event.target === settingsModal) {
     settingsModal.style.display = "none";
+  }
+  if (event.target === alertModal) {
+    hideCompletionModal();
   }
 });

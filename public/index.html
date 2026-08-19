@@ -8,21 +8,37 @@
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
-  <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
 
-  <div class="main-container">
-    <h1 id="currentTaskDisplay" class="task-title">Default Task</h1>
-    <div id="timer">--:--</div>
-    
-    <div class="controls">
-      <button id="start">Start</button>
-      <button id="pause">Pause</button>
-      <button id="reset">Reset</button>
-    </div>
+  <div class="app-layout">
+    <header class="title-bar">
+      <div class="app-title">🍅 Pomodoro Timer</div>
+      <div class="top-right-tools">
+        <button id="themeToggleBtn" class="icon-btn" title="Toggle Theme">🌞</button>
+        <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+      </div>
+    </header>
 
-    <div class="stats-section">
-      <h3>Completed Sessions</h3>
-      <ul id="completedList"></ul>
+    <div class="columns-container">
+      <aside class="sidebar left-sidebar">
+        <h3>Tasks</h3>
+        <div id="taskList" class="task-buttons-container"></div>
+      </aside>
+
+      <main class="main-container">
+        <h1 id="currentTaskDisplay" class="task-title">Default Task</h1>
+        <div id="timer">--:--</div>
+        
+        <div class="controls">
+          <button id="start">Start</button>
+          <button id="pause">Pause</button>
+          <button id="reset">Reset</button>
+        </div>
+      </main>
+
+      <aside class="sidebar right-sidebar">
+        <h3>Completed</h3>
+        <ul id="completedList"></ul>
+      </aside>
     </div>
   </div>
 
@@ -47,28 +63,33 @@
       </div>
 
       <div class="setting-group">
-        <h3>🎵 Music & Time</h3>
-        <p class="hint">Pomodoro time automatically syncs with music length</p>
-        <input type="file" id="musicInput" accept="audio/*">
-        <div id="musicPath" class="text-muted">Default: Spiegel_im_Spiegel</div>
-      </div>
-
-      <div class="setting-group">
         <h3>🔊 Volume Control</h3>
         <div class="volume-row">
           <input type="range" id="volumeSlider" min="0" max="300" value="70" step="1">
           <span id="volumeValue">70%</span>
         </div>
       </div>
-      <div class="setting-item">
-  <label>Alert Sound Volume: <span id="alertVolumeValue">70%</span></label>
-  <input type="range" id="alertVolumeSlider" min="0" max="100" value="70">
-</div>
-<audio id="alertSound" src="assets/dragon-studio-game-show-correct-tick-sound-416167.mp3"></audio>
-
+      
+      <div class="setting-group">
+        <h3>🔔 Alert Sound Volume</h3>
+        <div class="volume-row">
+          <input type="range" id="alertVolumeSlider" min="0" max="100" value="70">
+          <span id="alertVolumeValue">70%</span>
+        </div>
+      </div>
     </div>
   </div>
 
+  <div id="alertModal" class="modal">
+    <div class="modal-content alert-modal-content">
+      <div class="alert-icon">🎉</div>
+      <h2 class="alert-title">Pomodoro Completed!</h2>
+      <p id="alertTaskMessage" class="alert-message">Default Task</p>
+      <button id="alertConfirmBtn" class="action-btn alert-confirm-btn">OK (Enter)</button>
+    </div>
+  </div>
+
+  <audio id="alertSound" src="assets/freesound_community-tick-tock-94356.mp3"></audio>
   <audio id="music"></audio>
   <script src="app.js"></script>
 </body>
