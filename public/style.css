@@ -21,6 +21,7 @@
   --input-border: #cccccc;
 }
 
+
 /* 宣告暗黑模式的 CSS 變數 */
 [data-theme="dark"] {
   --bg-color: #121212;
@@ -328,4 +329,21 @@ select, input[type="text"] {
   .sidebar { width: 100%; min-height: 200px; }
   .left-sidebar { border-right: none; border-bottom: 1px solid var(--border-color); }
   .right-sidebar { border-left: none; border-top: 1px solid var(--border-color); }
+}
+
+/* 左側任務搜尋框樣式 */
+.task-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+.task-search-input:focus {
+  outline: none;
+  border-color: var(--task-active-bg);
 }

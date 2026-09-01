@@ -1,4 +1,5 @@
 // --- DOM Elements ---
+const taskSearchInput = document.getElementById('taskSearchInput');
 const timerDisplay = document.getElementById('timer');
 const currentTaskDisplay = document.getElementById('currentTaskDisplay');
 const startBtn = document.getElementById('start');
@@ -32,6 +33,7 @@ const alertConfirmBtn = document.getElementById('alertConfirmBtn');
 let alertVolume = parseFloat(localStorage.getItem('pomodoroAlertVolume')) || 0.7;
 
 // --- State Variables ---
+let searchQuery = "";
 let timerInterval;
 let musicDuration = 0; 
 let remainingTime = 0;
@@ -80,6 +82,13 @@ function initTheme() {
     localStorage.setItem('pomodoroTheme', currentTheme);
     themeToggleBtn.textContent = currentTheme === 'light' ? '🌙' : '🌞';
   });
+
+  taskSearchInput.addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  renderTasks();
+});
+
+
 }
 
 // ================== Music & Time Sync ==================
@@ -161,28 +170,49 @@ function resetTimer() {
 // ================== Task Logic ==================
 
 function renderTasks() {
-  currentTaskDisplay.textContent = currentTask;
+  currentTaskDisplay.textContent = currentTask; //[cite: 1]
 
+  // 原始排序：依據最後更新時間降冪排序[cite: 1]
   const sortedTasks = Object.entries(tasksData).sort((a, b) => {
     return b[1].lastUpdated - a[1].lastUpdated;
   });
 
-  // 1. 左側快捷任務清單
-  taskList.innerHTML = '';
-  sortedTasks.forEach(([taskName]) => {
-    const btn = document.createElement('button');
-    btn.className = `task-btn ${taskName === currentTask ? 'active' : ''}`;
-    btn.textContent = taskName;
-    btn.title = taskName;
-    btn.addEventListener('click', () => {
-      currentTask = taskName;
-      tasksData[currentTask].lastUpdated = Date.now();
-      saveTasksData();
+  // 1. 左側快捷任務清單 (加入搜尋優先排列邏輯)
+  taskList.innerHTML = ''; //[cite: 1]
+  
+  // 複製一份陣列專門給左側側邊欄使用
+  let sidebarTasks = [...sortedTasks];
+  
+  if (searchQuery) {
+    sidebarTasks.sort((a, b) => {
+      const aMatch = a[0].toLowerCase().includes(searchQuery);
+      const bMatch = b[0].toLowerCase().includes(searchQuery);
+      
+      // 如果 a 包含搜尋字串但 b 沒有，a 優先往前排
+      if (aMatch && !bMatch) return -1;
+      // 如果 b 包含搜尋字串但 a 沒有，b 優先往前排
+      if (!aMatch && bMatch) return 1;
+      
+      // 若兩者都有匹配、或都沒匹配，則維持原本的時間排序 (return 0)
+      return 0; 
     });
-    taskList.appendChild(btn);
+  }
+
+  // 依照排序好的 sidebarTasks 建立按鈕
+  sidebarTasks.forEach(([taskName]) => {
+    const btn = document.createElement('button'); //[cite: 1]
+    btn.className = `task-btn ${taskName === currentTask ? 'active' : ''}`; //[cite: 1]
+    btn.textContent = taskName; //[cite: 1]
+    btn.title = taskName; //[cite: 1]
+    btn.addEventListener('click', () => { //[cite: 1]
+      currentTask = taskName; //[cite: 1]
+      tasksData[currentTask].lastUpdated = Date.now(); //[cite: 1]
+      saveTasksData(); //[cite: 1]
+    });
+    taskList.appendChild(btn); //[cite: 1]
   });
 
-  // 2. 更新設定面板的下拉選單
+  // 2. 更新設定面板的下拉選單 (保持原排序)[cite: 1]
   taskSelect.innerHTML = '';
   for (const taskName in tasksData) {
     const option = document.createElement('option');
@@ -192,7 +222,7 @@ function renderTasks() {
     taskSelect.appendChild(option);
   }
 
-  // 3. 右側主畫面統計清單 (完美對稱位置)
+  // 3. 右側主畫面統計清單 (完美對稱位置，保持原排序)[cite: 1]
   completedList.innerHTML = '';
   for (const [taskName, taskInfo] of sortedTasks) {
     const li = document.createElement('li');
